@@ -158,7 +158,7 @@ class LineHistory(object):
                     startpos = idx
                     break
 
-        if self.history:                    
+        if self.history and startpos < len(self.history):
             result = self.history[startpos].get_line_text()
         else:
             result = ""
@@ -188,7 +188,7 @@ class LineHistory(object):
                     startpos = idx
                     break
 
-        if self.history:                    
+        if self.history and startpos < len(self.history):
             result = self.history[startpos].get_line_text()
         else:
             result = ""

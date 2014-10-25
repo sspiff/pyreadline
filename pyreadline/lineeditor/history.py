@@ -144,7 +144,7 @@ class LineHistory(object):
 
         result =  lineobj.ReadLineTextBuffer("")
 
-        for idx, line in list(enumerate(self.history))[startpos:0:-1]:
+        for idx, line in list(enumerate(self.history))[startpos::-1]:
             if searchfor in line:
                 startpos = idx
                 break
@@ -152,7 +152,7 @@ class LineHistory(object):
         #If we get a new search without change in search term it means
         #someone pushed ctrl-r and we should find the next match
         if self.last_search_for == searchfor and startpos > 0:
-            for idx, line in list(enumerate(self.history))[(startpos-1):0:-1]:
+            for idx, line in list(enumerate(self.history))[(startpos-1)::-1]:
                 if searchfor in line:
                     startpos = idx
                     break

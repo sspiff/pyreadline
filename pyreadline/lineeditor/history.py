@@ -137,32 +137,33 @@ class LineHistory(object):
         self.history_cursor = len(self.history)
         current.set_line(self.history[-1].get_line_text())
 
+    def _isearch(self, searchfor, history):
+        result = ""
+
+        #If we get a new search without change in search term it means
+        #someone pushed ctrl-r/f and we should find the next match
+        if history and self.last_search_for == searchfor:
+            history = history[1:] + [history[0]]
+
+        for idx, line in history:
+            if not searchfor or searchfor in line:
+                result = line.get_line_text()
+                self.history_cursor = idx
+                break
+
+        self.last_search_for = searchfor
+        return result
+
     def reverse_search_history(self, searchfor, startpos=None):
         if startpos is None:
             startpos = self.history_cursor
         origpos = startpos
 
-        result =  lineobj.ReadLineTextBuffer("")
+        history = list(enumerate(self.history))
+        history = history[startpos::-1] + history[:startpos:-1]
 
-        for idx, line in list(enumerate(self.history))[startpos::-1]:
-            if searchfor in line:
-                startpos = idx
-                break
+        result = self._isearch(searchfor, history)
 
-        #If we get a new search without change in search term it means
-        #someone pushed ctrl-r and we should find the next match
-        if self.last_search_for == searchfor and startpos > 0:
-            for idx, line in list(enumerate(self.history))[(startpos-1)::-1]:
-                if searchfor in line:
-                    startpos = idx
-                    break
-
-        if self.history and startpos < len(self.history):
-            result = self.history[startpos].get_line_text()
-        else:
-            result = ""
-        self.history_cursor = startpos
-        self.last_search_for = searchfor
         log("reverse_search_history: old:%d new:%d result:%r"%(origpos, self.history_cursor, result))
         return result
         
@@ -171,27 +172,11 @@ class LineHistory(object):
             startpos = min(self.history_cursor, max(0, self.get_current_history_length()-1))
         origpos = startpos
         
-        result =  lineobj.ReadLineTextBuffer("")
+        history = list(enumerate(self.history))
+        history = history[startpos:] + history[:startpos]
 
-        for idx, line in list(enumerate(self.history))[startpos:]:
-            if searchfor in line:
-                startpos = idx
-                break
+        result = self._isearch(searchfor, history)
 
-        #If we get a new search without change in search term it means
-        #someone pushed ctrl-r and we should find the next match
-        if self.last_search_for == searchfor and startpos < self.get_current_history_length()-1:
-            for idx, line in list(enumerate(self.history))[(startpos+1):]:
-                if searchfor in line:
-                    startpos = idx
-                    break
-
-        if self.history and startpos < len(self.history):
-            result = self.history[startpos].get_line_text()
-        else:
-            result = ""
-        self.history_cursor = startpos
-        self.last_search_for = searchfor
         return result
 
     def _search(self, direction, partial):
